@@ -3,47 +3,15 @@ use std::{
     time::Duration,
 };
 
-#[derive(Default, Debug)]
-struct LightBrightness {
-    red: u8,
-    blue: u8,
-    green: u8,
-    general: u8,
-}
+use crate::{config::Config, pwm::LightBrightness};
+
+pub mod config;
+pub mod pwm;
 
 fn main() {
-    let (sender, receiver) = std::sync::mpsc::channel::<LightBrightness>();
+    let config = Config::open().unwrap();
 
-    thread::spawn(move || {
-        const PERIOD_DURATION: Duration = Duration::from_millis(5);
-
-        let mut brightness = LightBrightness::default();
-        let mut period_start = std::time::Instant::now();
-
-        loop {
-            if let Ok(new_brightness) = receiver.try_recv() {
-                brightness = new_brightness;
-            }
-
-            let passed_part: u8 = ((period_start.elapsed().as_nanos() as f32
-                / PERIOD_DURATION.as_nanos() as f32)
-                * u8::MAX as f32) as u8;
-
-            println!(
-                " r{} g{} b{} g{}",
-                brightness.red > passed_part,
-                brightness.green > passed_part,
-                brightness.blue > passed_part,
-                brightness.general > passed_part
-            );
-
-            if period_start.elapsed() > PERIOD_DURATION {
-                period_start = std::time::Instant::now();
-            }
-
-            thread::yield_now();
-        }
-    });
+    let sender = pwm::spawn(&config);
 
     let mut brightness: u8 = 0;
     let mut direction: bool = true;
@@ -61,12 +29,9 @@ fn main() {
         }
 
         sender
-            .send(LightBrightness {
-                red: brightness,
-                blue: brightness,
-                green: brightness,
-                general: brightness,
-            })
+            .send(LightBrightness::new(
+                brightness, brightness, brightness, brightness,
+            ))
             .unwrap();
 
         thread::sleep(Duration::from_millis(20));
