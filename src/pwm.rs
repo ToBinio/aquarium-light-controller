@@ -1,6 +1,6 @@
 use std::{thread, time::Duration};
 
-use rppal::gpio::{Gpio, OutputPin};
+use rppal::gpio::{Gpio, Level, OutputPin};
 
 use crate::config::Config;
 
@@ -42,12 +42,6 @@ impl Pins {
             None => None,
         }
     }
-
-    fn calc_pulse_width(config: &Config, brightness: u8) -> Duration {
-        Duration::from_nanos(
-            (config.pwm.period_nanos as f64 * brightness as f64 / u8::MAX as f64) as u64,
-        )
-    }
 }
 
 pub fn spawn(config: &Config) -> std::sync::mpsc::Sender<LightBrightness> {
@@ -60,37 +54,58 @@ pub fn spawn(config: &Config) -> std::sync::mpsc::Sender<LightBrightness> {
         let gpio = Gpio::new().ok();
         let mut pins = Pins::from_config(&config, &gpio);
 
+        let mut brightness = LightBrightness::default();
+        let mut period_start = std::time::Instant::now();
+
         loop {
-            let brightness = receiver.recv().unwrap();
+            if let Some(new_brightness) = receiver.try_recv().ok() {
+                brightness = new_brightness;
+            }
+
+            let passed_part: u8 = ((period_start.elapsed().as_nanos() as f32
+                / period_duration.as_nanos() as f32)
+                * u8::MAX as f32) as u8;
 
             if let Some(pins) = &mut pins {
-                pins.red
-                    .set_pwm(
-                        period_duration,
-                        Pins::calc_pulse_width(&config, brightness.red),
-                    )
-                    .unwrap();
-                pins.green
-                    .set_pwm(
-                        period_duration,
-                        Pins::calc_pulse_width(&config, brightness.green),
-                    )
-                    .unwrap();
-                pins.blue
-                    .set_pwm(
-                        period_duration,
-                        Pins::calc_pulse_width(&config, brightness.blue),
-                    )
-                    .unwrap();
-                pins.general
-                    .set_pwm(
-                        period_duration,
-                        Pins::calc_pulse_width(&config, brightness.general),
-                    )
-                    .unwrap();
+                //TODO - only set if change
+                if brightness.red > passed_part {
+                    pins.red.set_high();
+                } else {
+                    pins.red.set_low();
+                }
+
+                if brightness.blue > passed_part {
+                    pins.blue.set_high();
+                } else {
+                    pins.blue.set_low();
+                }
+
+                if brightness.green > passed_part {
+                    pins.green.set_high();
+                } else {
+                    pins.green.set_low();
+                }
+
+                if brightness.general > passed_part {
+                    pins.general.set_high();
+                } else {
+                    pins.general.set_low();
+                }
             } else {
-                println!("{:?}", brightness);
+                println!(
+                    " r{} g{} b{} g{}",
+                    brightness.red > passed_part,
+                    brightness.green > passed_part,
+                    brightness.blue > passed_part,
+                    brightness.general > passed_part
+                );
             }
+
+            if period_start.elapsed() > period_duration {
+                period_start = std::time::Instant::now();
+            }
+
+            thread::yield_now();
         }
     });
 
