@@ -2,14 +2,23 @@ use std::fs;
 
 use serde::{Deserialize, Serialize};
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Clone)]
 pub struct Config {
     pub pwm: PwmConfig,
+    pub pins: PinsConfig,
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Clone)]
 pub struct PwmConfig {
     pub period_nanos: u64,
+}
+
+#[derive(Serialize, Deserialize, Clone)]
+pub struct PinsConfig {
+    pub red: u8,
+    pub green: u8,
+    pub blue: u8,
+    pub general: u8,
 }
 
 impl Default for Config {
@@ -17,6 +26,12 @@ impl Default for Config {
         Self {
             pwm: PwmConfig {
                 period_nanos: 10_000, // 10 microsecond
+            },
+            pins: PinsConfig {
+                red: 23,
+                green: 24,
+                blue: 27,
+                general: 22,
             },
         }
     }
