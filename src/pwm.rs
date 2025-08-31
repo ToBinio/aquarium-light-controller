@@ -105,6 +105,7 @@ pub fn spawn(config: &Config) -> std::sync::mpsc::Sender<LightBrightness> {
                 period_start = std::time::Instant::now();
             }
 
+            thread::sleep(std::time::Duration::from_nanos(config.pwm.sleep_nanos));
             thread::yield_now();
         }
     });

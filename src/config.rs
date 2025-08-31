@@ -11,6 +11,7 @@ pub struct Config {
 #[derive(Serialize, Deserialize, Clone)]
 pub struct PwmConfig {
     pub period_nanos: u64,
+    pub sleep_nanos: u64,
 }
 
 #[derive(Serialize, Deserialize, Clone)]
@@ -25,7 +26,8 @@ impl Default for Config {
     fn default() -> Self {
         Self {
             pwm: PwmConfig {
-                period_nanos: 10_000, // 10 microsecond
+                period_nanos: 1_000_000, // 1 millisecond
+                sleep_nanos: 2,
             },
             pins: PinsConfig {
                 red: 23,
