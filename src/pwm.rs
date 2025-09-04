@@ -7,17 +7,17 @@ use crate::config::Config;
 #[derive(Default, Debug)]
 pub struct LightBrightness {
     red: u8,
-    blue: u8,
     green: u8,
+    blue: u8,
     general: u8,
 }
 
 impl LightBrightness {
-    pub fn new(red: u8, blue: u8, green: u8, general: u8) -> Self {
+    pub fn new(red: u8, green: u8, blue: u8, general: u8) -> Self {
         Self {
             red,
-            blue,
             green,
+            blue,
             general,
         }
     }
