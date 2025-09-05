@@ -1,6 +1,6 @@
 use std::{thread, time::Duration};
 
-use rppal::gpio::{Gpio, Level, OutputPin};
+use rppal::gpio::{Gpio, OutputPin};
 
 use crate::config::Config;
 
@@ -32,15 +32,12 @@ pub struct Pins {
 
 impl Pins {
     pub fn from_config(config: &Config, gpio: &Option<Gpio>) -> Option<Self> {
-        match gpio {
-            Some(gpio) => Some(Self {
-                red: gpio.get(config.pins.red).unwrap().into_output(),
-                blue: gpio.get(config.pins.blue).unwrap().into_output(),
-                green: gpio.get(config.pins.green).unwrap().into_output(),
-                general: gpio.get(config.pins.general).unwrap().into_output(),
-            }),
-            None => None,
-        }
+        gpio.as_ref().map(|gpio| Self {
+            red: gpio.get(config.pins.red).unwrap().into_output(),
+            blue: gpio.get(config.pins.blue).unwrap().into_output(),
+            green: gpio.get(config.pins.green).unwrap().into_output(),
+            general: gpio.get(config.pins.general).unwrap().into_output(),
+        })
     }
 }
 
@@ -58,7 +55,7 @@ pub fn spawn(config: &Config) -> std::sync::mpsc::Sender<LightBrightness> {
         let mut period_start = std::time::Instant::now();
 
         loop {
-            if let Some(new_brightness) = receiver.try_recv().ok() {
+            if let Ok(new_brightness) = receiver.try_recv() {
                 brightness = new_brightness;
             }
 
@@ -105,7 +102,10 @@ pub fn spawn(config: &Config) -> std::sync::mpsc::Sender<LightBrightness> {
                 period_start = std::time::Instant::now();
             }
 
-            thread::sleep(std::time::Duration::from_nanos(config.pwm.sleep_nanos));
+            if config.pwm.sleep_nanos != 0 {
+                thread::sleep(std::time::Duration::from_nanos(config.pwm.sleep_nanos));
+            }
+
             thread::yield_now();
         }
     });

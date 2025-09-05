@@ -1,9 +1,5 @@
 use futures::stream::StreamExt;
 use serde::Deserialize;
-use std::{
-    thread::{self},
-    time::Duration,
-};
 
 use reqwest_eventsource::{Event, EventSource};
 
@@ -24,7 +20,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let sender = pwm::spawn(&config);
 
-    let mut event_source = EventSource::get("http://localhost:3000/api/see");
+    let mut event_source = EventSource::get(format!("{}/api/see", &config.base_url));
     while let Some(event) = event_source.next().await {
         match event {
             Ok(Event::Open) => println!("Connection Open!"),

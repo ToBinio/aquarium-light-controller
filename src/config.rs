@@ -4,6 +4,7 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, Clone)]
 pub struct Config {
+    pub base_url: String,
     pub pwm: PwmConfig,
     pub pins: PinsConfig,
 }
@@ -25,6 +26,7 @@ pub struct PinsConfig {
 impl Default for Config {
     fn default() -> Self {
         Self {
+            base_url: "http://localhost:3000".to_string(),
             pwm: PwmConfig {
                 period_nanos: 1_000_000, // 1 millisecond
                 sleep_nanos: 2,
