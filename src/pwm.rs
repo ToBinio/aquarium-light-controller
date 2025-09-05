@@ -39,6 +39,20 @@ impl Pins {
             general: gpio.get(config.pins.general).unwrap().into_output(),
         })
     }
+
+    pub fn set_status(pin: &mut OutputPin, active: bool) {
+        let current_active = pin.is_set_high();
+
+        if current_active == active {
+            return;
+        }
+
+        if active {
+            pin.set_high();
+        } else {
+            pin.set_low();
+        }
+    }
 }
 
 pub fn spawn(config: &Config) -> std::sync::mpsc::Sender<LightBrightness> {
@@ -64,30 +78,10 @@ pub fn spawn(config: &Config) -> std::sync::mpsc::Sender<LightBrightness> {
                 * u8::MAX as f32) as u8;
 
             if let Some(pins) = &mut pins {
-                //TODO - only set if change
-                if brightness.red > passed_part {
-                    pins.red.set_high();
-                } else {
-                    pins.red.set_low();
-                }
-
-                if brightness.blue > passed_part {
-                    pins.blue.set_high();
-                } else {
-                    pins.blue.set_low();
-                }
-
-                if brightness.green > passed_part {
-                    pins.green.set_high();
-                } else {
-                    pins.green.set_low();
-                }
-
-                if brightness.general > passed_part {
-                    pins.general.set_high();
-                } else {
-                    pins.general.set_low();
-                }
+                Pins::set_status(&mut pins.red, brightness.red > passed_part);
+                Pins::set_status(&mut pins.green, brightness.green > passed_part);
+                Pins::set_status(&mut pins.blue, brightness.blue > passed_part);
+                Pins::set_status(&mut pins.general, brightness.general > passed_part);
             } else {
                 println!(
                     " r{} g{} b{} g{}",
