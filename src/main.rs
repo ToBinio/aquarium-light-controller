@@ -24,7 +24,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let mut color = "#FFFFFF".to_string();
     let mut brightness = 0.;
-    let mut active = true;
+    let mut active = false;
 
     let mut event_source = EventSource::get(format!("{}/api/see", &config.base_url));
     while let Some(event) = event_source.next().await {
