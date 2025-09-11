@@ -1,5 +1,5 @@
 import type { EventStream } from "h3";
-import { Light } from "~~/shared/light";
+import type { Updates } from "~~/shared/updates";
 
 const updateEventStreams: EventStream[] = [];
 
@@ -12,7 +12,7 @@ export const UpdateEventStream = {
       await eventStream.close();
     });
   },
-  async sendUpdate(data: Light) {
+  async sendUpdate(data: Updates) {
     const json = JSON.stringify(data);
 
     updateEventStreams.forEach((eventStream) => {

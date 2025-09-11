@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { SliderRange, SliderRoot, SliderThumb, SliderTrack } from "reka-ui";
+import { SliderRoot, SliderThumb, SliderTrack } from "reka-ui";
 
 let hexColor = defineModel("hexColor");
 
