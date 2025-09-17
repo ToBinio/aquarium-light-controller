@@ -1,13 +1,12 @@
 <script setup lang="ts">
-import { SliderRoot, SliderThumb, SliderTrack } from "reka-ui";
+import type { Activate } from "~~/shared/updates";
 
 async function setActivation() {
+    let activation: Activate = { type: "Activate", on: on.value };
+
     await $fetch("/api/update", {
         method: "POST",
-        body: JSON.stringify({
-            type: "Activate",
-            on: on.value,
-        }),
+        body: JSON.stringify(activation),
     });
 }
 

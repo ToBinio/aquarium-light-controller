@@ -7,10 +7,11 @@ export type Activate = {
 
 export type SetColor = {
   type: "SetColor";
-  hex: string;
+  hue: number;
+  saturation: number;
 };
 
 export type SetBrightness = {
   type: "SetBrightness";
-  value: number;
+  brightness: number;
 };

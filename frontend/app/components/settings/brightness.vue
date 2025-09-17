@@ -1,13 +1,16 @@
 <script setup lang="ts">
 import { SliderRoot, SliderThumb, SliderTrack } from "reka-ui";
+import type { SetBrightness } from "~~/shared/updates";
 
 async function setBrightness() {
+    let brightness: SetBrightness = {
+        type: "SetBrightness",
+        brightness: sliderValue.value[0]!,
+    };
+
     await $fetch("/api/update", {
         method: "POST",
-        body: JSON.stringify({
-            type: "SetBrightness",
-            value: sliderValue.value[0],
-        }),
+        body: JSON.stringify(brightness),
     });
 }
 
