@@ -12,8 +12,8 @@ pub mod pwm;
 #[serde(tag = "type")]
 enum UpdateBody {
     Activate { on: bool },
-    SetColor { hex: String },
-    SetBrightness { value: f32 },
+    SetColor { hue: f32, saturation: f32 },
+    SetBrightness { brightness: f32 },
 }
 
 #[tokio::main]
@@ -22,8 +22,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let sender = pwm::spawn(&config);
 
-    let mut color = "#FFFFFF".to_string();
+    let mut hue = 0.;
+    let mut saturation = 0.;
     let mut brightness = 0.;
+
     let mut active = false;
 
     let mut event_source = EventSource::get(format!("{}/api/see", &config.base_url));
@@ -37,10 +39,14 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                     UpdateBody::Activate { on } => {
                         active = on;
                     }
-                    UpdateBody::SetColor { hex } => {
-                        color = hex;
+                    UpdateBody::SetColor {
+                        hue: hue_value,
+                        saturation: saturation_value,
+                    } => {
+                        hue = hue_value;
+                        saturation = saturation_value;
                     }
-                    UpdateBody::SetBrightness { value } => {
+                    UpdateBody::SetBrightness { brightness: value } => {
                         brightness = value;
                     }
                 }
@@ -49,18 +55,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                     sender.send(LightBrightness::new(0, 0, 0, 0)).unwrap();
                     continue;
                 }
-
-                let red = u8::from_str_radix(&color[1..3], 16).unwrap() as f32 * 0.5;
-                let green = u8::from_str_radix(&color[3..5], 16).unwrap() as f32 * 0.5;
-                let blue = u8::from_str_radix(&color[5..7], 16).unwrap() as f32 * 0.5;
-
                 sender
-                    .send(LightBrightness::new(
-                        red as u8 + (brightness * 128.) as u8,
-                        green as u8 + (brightness * 128.) as u8,
-                        blue as u8 + (brightness * 128.) as u8,
-                        (brightness * 255.) as u8,
-                    ))
+                    .send(hsb_to_light_brightness(hue, saturation, brightness))
                     .unwrap();
             }
             Err(err) => {
@@ -71,4 +67,46 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     }
 
     Ok(())
+}
+
+fn hsb_to_light_brightness(hue: f32, saturation: f32, brightness: f32) -> LightBrightness {
+    let c = brightness * saturation;
+    let x = c * (1. - (((hue * 6.) % 2.).abs() - 1.));
+    let m = brightness - c;
+
+    let mut r = 0.;
+    let mut g = 0.;
+    let mut b = 0.;
+
+    if hue >= 0. && hue < 1. / 6. {
+        r = c;
+        g = x;
+        b = 0.;
+    } else if hue >= 1. / 6. && hue < 2. / 6. {
+        r = x;
+        g = c;
+        b = 0.;
+    } else if hue >= 2. / 6. && hue < 3. / 6. {
+        r = 0.;
+        g = c;
+        b = x;
+    } else if hue >= 3. / 6. && hue < 4. / 6. {
+        r = 0.;
+        g = x;
+        b = c;
+    } else if hue >= 4. / 6. && hue < 5. / 6. {
+        r = x;
+        g = 0.;
+        b = c;
+    } else if hue >= 5. / 6. && hue <= 1. {
+        r = c;
+        g = 0.;
+        b = x;
+    }
+
+    let red = ((r + m) * 255.) as u8;
+    let green = ((g + m) * 255.) as u8;
+    let blue = ((b + m) * 255.) as u8;
+
+    LightBrightness::new(red, green, blue, (brightness * 255.) as u8)
 }
