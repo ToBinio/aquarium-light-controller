@@ -71,6 +71,11 @@ pub fn spawn(config: &Config) -> std::sync::mpsc::Sender<LightBrightness> {
         loop {
             if let Ok(new_brightness) = receiver.try_recv() {
                 brightness = new_brightness;
+
+                println!(
+                    "new settings red-{} green-{} blue-{} all-{}",
+                    brightness.red, brightness.green, brightness.blue, brightness.general
+                );
             }
 
             let passed_part: u8 = ((period_start.elapsed().as_nanos() as f32
@@ -82,14 +87,6 @@ pub fn spawn(config: &Config) -> std::sync::mpsc::Sender<LightBrightness> {
                 Pins::set_status(&mut pins.green, brightness.green > passed_part);
                 Pins::set_status(&mut pins.blue, brightness.blue > passed_part);
                 Pins::set_status(&mut pins.general, brightness.general > passed_part);
-            } else {
-                println!(
-                    " r{} g{} b{} g{}",
-                    brightness.red > passed_part,
-                    brightness.green > passed_part,
-                    brightness.blue > passed_part,
-                    brightness.general > passed_part
-                );
             }
 
             if period_start.elapsed() > period_duration {
