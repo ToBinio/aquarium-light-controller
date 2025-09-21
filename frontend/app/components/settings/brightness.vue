@@ -15,9 +15,18 @@ async function setBrightness() {
 }
 
 const sliderValue = ref([0]);
+
+let timeoutId: NodeJS.Timeout | null = null;
+watch(sliderValue, async () => {
+    if (timeoutId) clearTimeout(timeoutId);
+    timeoutId = setTimeout(() => {
+        setBrightness();
+    }, 500);
+});
 </script>
 <template>
-    <div>
+    <div class="text-gray-400">
+        Brightness
         <SliderRoot
             v-model="sliderValue"
             class="relative flex items-center select-none touch-none h-5"
@@ -30,11 +39,5 @@ const sliderValue = ref([0]);
                 aria-label="Volume"
             />
         </SliderRoot>
-        <button
-            @click="setBrightness"
-            class="bg-neutral-500 hover:bg-neutral-700 text-white font-bold py-1 px-2 mt-2 rounded"
-        >
-            update Brightness
-        </button>
     </div>
 </template>

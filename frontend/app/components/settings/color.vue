@@ -63,12 +63,21 @@ const saturationValue = ref([0]);
 const colorHex = computed(() => {
     return hsbToHex(hueValue.value[0]!, saturationValue.value[0]!, 0.5);
 });
+
+let timeoutId: NodeJS.Timeout | null = null;
+watch([hueValue, saturationValue], async () => {
+    if (timeoutId) clearTimeout(timeoutId);
+    timeoutId = setTimeout(() => {
+        setColor();
+    }, 500);
+});
 </script>
 <template>
     <div>
-        <div class="flex gap-2">
-            <div :style="{ backgroundColor: colorHex }" class="w-10 h-10"></div>
-            <div class="flex-1">
+        <div class="flex gap-2 items-center">
+            <div :style="{ backgroundColor: colorHex }" class="w-10 h-20"></div>
+            <div class="flex-1 text-gray-400">
+                Hue
                 <SliderRoot
                     v-model="hueValue"
                     class="relative flex items-center select-none touch-none h-5"
@@ -84,6 +93,7 @@ const colorHex = computed(() => {
                         aria-label="Volume"
                     />
                 </SliderRoot>
+                Saturation
                 <SliderRoot
                     v-model="saturationValue"
                     class="relative flex items-center select-none touch-none h-5"
@@ -101,12 +111,6 @@ const colorHex = computed(() => {
                 </SliderRoot>
             </div>
         </div>
-        <button
-            @click="setColor"
-            class="bg-neutral-500 hover:bg-neutral-700 text-white font-bold py-1 px-2 mt-2 rounded"
-        >
-            update Color
-        </button>
     </div>
 </template>
 <style lang="css" scoped>
