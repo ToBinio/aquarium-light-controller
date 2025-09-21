@@ -61,7 +61,6 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             }
             Err(err) => {
                 println!("Error: {}", err);
-                event_source.close();
             }
         }
     }
