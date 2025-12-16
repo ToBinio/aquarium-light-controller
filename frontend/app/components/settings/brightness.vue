@@ -1,18 +1,9 @@
 <script setup lang="ts">
 import { SliderRoot, SliderThumb, SliderTrack } from "reka-ui";
-import type { SetBrightness } from "~~/shared/updates";
 
-async function setBrightness() {
-    let brightness: SetBrightness = {
-        type: "SetBrightness",
-        brightness: sliderValue.value[0]!,
-    };
-
-    await $fetch("/api/update", {
-        method: "POST",
-        body: JSON.stringify(brightness),
-    });
-}
+let emits = defineEmits<{
+    (e: "update", brightness: number): void;
+}>();
 
 const sliderValue = ref([0]);
 
@@ -20,7 +11,7 @@ let timeoutId: NodeJS.Timeout | null = null;
 watch(sliderValue, async () => {
     if (timeoutId) clearTimeout(timeoutId);
     timeoutId = setTimeout(() => {
-        setBrightness();
+        emits("update", sliderValue.value[0]!);
     }, 500);
 });
 </script>

@@ -1,5 +1,4 @@
 import type { EventStream } from "h3";
-import type { Updates } from "~~/shared/updates";
 
 const updateEventStreams: EventStream[] = [];
 

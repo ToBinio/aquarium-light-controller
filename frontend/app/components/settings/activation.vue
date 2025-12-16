@@ -2,15 +2,14 @@
 import { SwitchRoot, SwitchThumb } from "reka-ui";
 import type { Activate } from "~~/shared/updates";
 
+let emits = defineEmits<{
+    (e: "update", active: boolean): void;
+}>();
+
 const on = ref(false);
 
 watch(on, async () => {
-    let activation: Activate = { type: "Activate", on: on.value };
-
-    await $fetch("/api/update", {
-        method: "POST",
-        body: JSON.stringify(activation),
-    });
+    emits("update", on.value);
 });
 </script>
 <template>

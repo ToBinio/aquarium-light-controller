@@ -1,4 +1,3 @@
-import type { Updates } from "~~/shared/updates";
 import { UpdateEventStream } from "../utils/see";
 
 export default defineEventHandler(async (event) => {
